@@ -1,0 +1,7 @@
+# Folders
+.pytest_cache/
+data/
+wandb/
+
+# Files
+*__pycache__*

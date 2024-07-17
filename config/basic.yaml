@@ -1,0 +1,29 @@
+# molecule
+dataset:
+  molecule: Alanine Dipeptide
+  name: Ala2TSF300
+  save_image: True
+
+prior:
+  name: normal
+
+model:
+  type: nvp
+  layers: 5
+  lr: 1e-3
+
+train:
+  loss: nll
+  iter: 200000
+  batchsize: 128
+  n_print: 1000
+  w_energy: 0.0
+
+sample:
+  n_samples: 10000
+
+path: ./result
+
+wandb:
+  project: cv
+  entity: eddy26
