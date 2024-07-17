@@ -1,10 +1,12 @@
+import wandb
+
 import numpy as np
 import mdtraj as md 
 
 from matplotlib import pyplot as plt
 from matplotlib.colors import LogNorm
 
-def plot_distribution(configs, system, samples):
+def plot_distribution(configs, system, samples, idx=0):
     fig_distribution, ax = plt.subplots(figsize=(3,3))
     
     if configs["dataset"]["molecule"] == "Alanine Dipeptide":
@@ -12,10 +14,12 @@ def plot_distribution(configs, system, samples):
     else:
         raise ValueError(f"Distribution plot not implemented for {configs['dataset']['molecule']}")
     
-    fig_distribution.savefig(f'{configs["path"]}/{args.date}_{configs["dataset"]}.png')
+    image_name = f'{configs["path"]}/{configs["date"]}_{configs["dataset"]["name"]}_{idx}.png'
+    fig_distribution.savefig(image_name)
+    print(f"Saved image to {image_name}")
     
     if "wandb" in configs:
-        wandb.log({"Generator samples": wandb.Image(fig_gen)})
+        wandb.log({"Generator samples": wandb.Image(fig_distribution)})
 
 def plot_energies(ax, samples, target_energy, test_data):
     sample_energies = target_energy.energy(samples).cpu().detach().numpy()

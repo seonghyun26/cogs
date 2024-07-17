@@ -11,7 +11,7 @@ from tqdm.auto import tqdm, trange
 from matplotlib import pyplot as plt
 from matplotlib.colors import LogNorm
 
-from model.nvp import RealNVP
+from model import *
 
 from data.data_loader import *
 
@@ -34,9 +34,19 @@ if __name__ == "__main__":
     # Load configs from yaml file
     configs = init_config(args)
     system, temperature, all_data, training_data, test_data, target_energy = init_dataset(configs, ctx, save_image=False)
+    wandb_use = True if "wandb" in configs else False
     
     # Preprocess
-    dim_cartesian, dim_bonds, dim_angles, dim_torsions = len(system.rigid_block) * 3 - 6, len(system.z_matrix), dim_bonds, dim_bonds
+    dim_cartesian, dim_bonds = len(system.rigid_block) * 3 - 6, len(system.z_matrix)
+    dim_angles, dim_torsions = dim_bonds, dim_bonds
+    dim_ics = dim_cartesian + dim_bonds + dim_angles + dim_torsions
+    dim_dict = {
+        "dim_cartesian": dim_cartesian,
+        "dim_bonds": dim_bonds,
+        "dim_angles": dim_angles,
+        "dim_torsions": dim_torsions,
+        "dim_ics": dim_ics
+    }
     coordinate_transform = bg.MixedCoordinateTransformation(
         data=training_data, 
         z_matrix=system.z_matrix,
@@ -44,32 +54,12 @@ if __name__ == "__main__":
         keepdims=dim_cartesian, 
         normalize_angles=True,
     ).to(ctx)
-    dim_ics = dim_cartesian + dim_bonds + dim_angles + dim_torsions
-    
-    # Set prior distribution
+        
+    # Set model
     prior = set_prior(configs, dim_ics, ctx)
-    # mean = torch.zeros(dim_ics).to(ctx) 
-    # prior = bg.NormalDistribution(dim_ics, mean=mean)
+    generator = set_model(configs, dim_dict, prior, target_energy, coordinate_transform, ctx)
     
-    # model
-    split_into_ics_flow = bg.SplitFlow(dim_bonds, dim_angles, dim_torsions, dim_cartesian)
-    RealNVP(dim_ics, hidden=[128]).to(ctx).forward(prior.sample(3))[0].shape
-    n_realnvp_blocks = configs["model"]["layers"]
-    layers = []
-    for i in range(n_realnvp_blocks):
-        layers.append(RealNVP(dim_ics, hidden=[128, 128, 128]))
-    layers.append(split_into_ics_flow)
-    layers.append(bg.InverseFlow(coordinate_transform))
-    flow = bg.SequentialFlow(layers).to(ctx)
-    
-    print("# Parameters:", np.sum([np.prod(p.size()) for p in flow.parameters()]))
-    generator = bg.BoltzmannGenerator(
-        flow=flow,
-        prior=prior,
-        target=target_energy
-    )
-    
-    # train
+    # Train generator
     loss_type = configs["train"]["loss"]
     if loss_type == "nll":
         optimizer = torch.optim.Adam(
@@ -79,7 +69,9 @@ if __name__ == "__main__":
         trainer = bg.KLTrainer(
             generator, 
             optim=optimizer,
-            train_energy=False
+            train_energy=False,
+            configs=configs,
+            system=system
         )
         trainer.train(
             n_iter=configs["train"]["iter"],
@@ -87,7 +79,8 @@ if __name__ == "__main__":
             batchsize=configs["train"]["batchsize"],
             n_print=configs["train"]["n_print"], 
             w_energy=configs["train"]["w_energy"],
-            progress_bar=tqdm
+            progress_bar=tqdm,
+            wandb_use=wandb_use
         )
     elif loss_type == "mixed":
         mixed_optimizer = torch.optim.Adam(
@@ -97,7 +90,9 @@ if __name__ == "__main__":
         mixed_trainer = bg.KLTrainer(
             generator, 
             optim=mixed_optimizer,
-            train_energy=True
+            train_energy=True,
+            configs=configs,
+            system=system
         )
         mixed_trainer.train(
             n_iter=configs["train"]["iter"],
@@ -107,7 +102,8 @@ if __name__ == "__main__":
             w_energy=configs["train"]["w_energy"],
             w_likelihood=configs["train"]["w_likelihood"],
             clip_forces=configs["train"]["clip_forces"],
-            progress_bar=tqdm
+            progress_bar=tqdm,
+            wandb_use=wandb_use
         )
     else:
         raise ValueError(f"Invalid loss function {loss_type}")

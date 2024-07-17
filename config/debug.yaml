@@ -9,22 +9,16 @@ model:
   type: nvp
   hidden_dim: [128, 128, 128]
   layers: 5
-  lr: 1e-4
+  lr: 1e-3
 
 train:
-  loss: mixed
-  iter: 2000
-  batchsize: 1000
-  n_print: 100
-  w_energy: 0.1
-  w_likelihood: 0.9
-  clip_forces: 20.0
+  loss: nll
+  iter: 200000
+  batchsize: 128
+  n_print: 1000
+  w_energy: 0.0
 
 sample:
   n_samples: 10000
 
 path: ./result
-
-wandb:
-  project: cv
-  entity: eddy26

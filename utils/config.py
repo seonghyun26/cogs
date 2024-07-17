@@ -7,11 +7,12 @@ def init_config(args):
     
     args_dict = vars(args)
     configs.update(args_dict)
-        
-    wandb.init(
-        project=configs["wandb"]["project"],
-        entity=configs["wandb"]["entity"],
-        config=configs
-    )
+    
+    if "wandb" in configs:
+        wandb.init(
+            project=configs["wandb"]["project"],
+            entity=configs["wandb"]["entity"],
+            config=configs
+        )
     
     return configs

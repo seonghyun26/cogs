@@ -4,11 +4,10 @@ dataset:
   name: Ala2TSF300
   save_image: True
 
-prior:
-  name: normal
-
 model:
+  prior: normal
   type: nvp
+  hidden_dim: [128, 128, 128]
   layers: 5
   lr: 1e-3
 
