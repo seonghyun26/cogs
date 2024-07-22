@@ -7,7 +7,8 @@ from model.nvp import RealNVP
 
 def set_model(configs, dim_dict, prior, target_energy, coordinate_transform, ctx):
     flow = set_flow(configs, dim_dict, prior, coordinate_transform, ctx)
-    print("# Parameters in flow:", np.sum([np.prod(p.size()) for p in flow.parameters()]))
+    parameters = np.sum([np.prod(p.size()) for p in flow.parameters()])
+    print(f"Number of parameters in flow: {parameters}")
     
     generator = bg.BoltzmannGenerator(
         flow=flow,
@@ -15,7 +16,7 @@ def set_model(configs, dim_dict, prior, target_energy, coordinate_transform, ctx
         target=target_energy
     )
     
-    return generator
+    return generator, parameters
     
 def set_flow(configs, dim_dict, prior, coordinate_transform, ctx):
     hdim = configs["model"]["hidden_dim"]

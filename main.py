@@ -57,7 +57,9 @@ if __name__ == "__main__":
         
     # Set model
     prior = set_prior(configs, dim_ics, ctx)
-    generator = set_model(configs, dim_dict, prior, target_energy, coordinate_transform, ctx)
+    generator, parameters = set_model(configs, dim_dict, prior, target_energy, coordinate_transform, ctx)
+    if wandb_use:
+        wandb.log({"Number of parameters": parameters})
     
     # Train generator
     loss_type = configs["train"]["loss"]
@@ -70,6 +72,27 @@ if __name__ == "__main__":
             generator, 
             optim=optimizer,
             train_energy=False,
+            configs=configs,
+            system=system
+        )
+        trainer.train(
+            n_iter=configs["train"]["iter"],
+            data=training_data,
+            batchsize=configs["train"]["batchsize"],
+            n_print=configs["train"]["n_print"], 
+            w_energy=configs["train"]["w_energy"],
+            progress_bar=tqdm,
+            wandb_use=wandb_use
+        )
+    elif loss_type == "kll":
+        optimizer = torch.optim.Adam(
+            generator.parameters(),
+            lr=1e-3
+        )
+        trainer = bg.KLTrainer(
+            generator, 
+            optim=optimizer,
+            train_energy=True,
             configs=configs,
             system=system
         )
@@ -111,7 +134,7 @@ if __name__ == "__main__":
     
     # Plot and save image
     samples = generator.sample(configs["sample"]["n_samples"])
-    plot_distribution(configs, system, samples)
+    plot(configs, system, samples, target_energy, idx="final")
 
-    
+    # Finish
     wandb.finish()

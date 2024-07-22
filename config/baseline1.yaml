@@ -7,19 +7,21 @@ dataset:
 model:
   prior: normal
   type: nvp
+  # hidden_dim: [256, 256, 256]
   hidden_dim: [128, 128, 128]
+  # hidden_dim: [64, 64, 64]
   layers: 5
-  lr: 1e-3
+  lr: 5e-2
 
 train:
   loss: nll
-  iter: 20_000
+  iter: 20000
   batchsize: 128
   n_print: 1000
   w_energy: 0.0
 
 sample:
-  n_samples: 10000
+  n_samples: 100000
 
 path: ./result
 

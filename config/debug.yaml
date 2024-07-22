@@ -12,13 +12,26 @@ model:
   lr: 1e-3
 
 train:
-  loss: nll
-  iter: 200000
+  loss: kll
+  cv-entropy: True
+  iter: 100
   batchsize: 128
-  n_print: 1000
+  n_print: 10
   w_energy: 0.0
+  w_entropy: 10.0
+  bin_entropy: 100
 
 sample:
   n_samples: 10000
 
 path: ./result
+
+plot:
+  distribution: True
+  energy: True
+  hist2d: 100
+  hist: 50
+
+# wandb:
+#   project: cv
+#   entity: eddy26

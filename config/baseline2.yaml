@@ -7,21 +7,27 @@ dataset:
 model:
   prior: normal
   type: nvp
-  hidden_dim: [128, 128, 128]
-  layers: 5
-  lr: 1e-3
+  hidden_dim: [256, 256]
+  layers: 12
+  lr: 5e-4
 
 train:
   loss: nll
-  iter: 20_000
-  batchsize: 128
+  iter: 50000
+  batchsize: 1024
   n_print: 1000
   w_energy: 0.0
 
 sample:
-  n_samples: 10000
+  n_samples: 100000
 
 path: ./result
+
+plot:
+  distribution: True
+  energy: True
+  hist2d: 100
+  hist: 50
 
 wandb:
   project: cv
