@@ -17,8 +17,8 @@ train:
   iter: 5000
   batchsize: 1024
   n_print: 500
-  w_energy: 0.0
-  w_entropy: 10.0
+  w_energy: 1.0
+  w_entropy: 1e+6
   bin_entropy: 100
 
 sample:

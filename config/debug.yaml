@@ -18,7 +18,7 @@ train:
   batchsize: 128
   n_print: 10
   w_energy: 0.0
-  w_entropy: 10.0
+  w_entropy: 1e+9
   bin_entropy: 100
 
 sample:

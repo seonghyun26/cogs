@@ -92,6 +92,7 @@ if __name__ == "__main__":
         trainer = bg.KLTrainer(
             generator, 
             optim=optimizer,
+            train_likelihood=False,
             train_energy=True,
             configs=configs,
             system=system
